@@ -7,8 +7,8 @@ from config import DatabaseConfig
 
 logger = logging.getLogger(__name__)
 
-class DatabaseMnager:
-    "Main database manager"
+class DatabaseManager:
+    """Main database manager"""
 
     def __init__(self, config: DatabaseConfig):
         self.config = config
@@ -32,3 +32,45 @@ class DatabaseMnager:
         except Exception as e:
             logger.error(f"Failed to connect to database: {e}")
             raise
+
+    async def disconnect(self) -> None:
+        """Close connection pool"""
+        if self.pool and self._is_connected:
+            await self.pool.close()
+            self._is_connected = False
+            logger.info("Databse connection pool closed")
+
+    @property
+    def is_connected(self) -> bool:
+        return self._is_connected and self.pool is not None
+    
+    @asynccontextmanager
+    async def transaction(self):
+        if not self.is_connected:
+            raise RuntimeError("Database is not connected")
+
+        async with self.pool.acquire() as conn:
+            async with conn.transaction():
+                yield conn
+
+    async def execute(self, query: str, *args) -> str:
+        """Execute query without returning results"""
+        async with self.pool.acquire() as conn:
+            return await conn.execute(query, *args)
+        
+    async def fetch_one(self, query: str, *args) -> Optional[Dict[str, Any]]:
+        """Fetch single row"""
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow(query, *args)
+            return dict(row) if row else None
+        
+    async def fetch_all(self, query: str, *args) -> List[Dict[str, Any]]:
+        """Fetch all rows"""
+        async with self.pool.acquire() as conn:
+            rows = await conn.fetch(query, *args)
+            return [dict(row) for row in rows]
+        
+    async def fetch_val(self, query: str, *args) -> Any:
+        """Fetch single value"""
+        async with self.pool.acquire() as conn:
+            return await conn.fetchval(query, *args)
