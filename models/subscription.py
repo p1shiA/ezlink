@@ -9,6 +9,7 @@ class Subscription:
     purchase_id: int = 0
     traffic_limit_bytes: int = 0
     traffic_used_bytes: int = 0
+    extra_traffic_bytes: int = 0
     started_at: Optional[datetime] = None
     expires_at: Optional[datetime] = None
     is_active: bool = True
