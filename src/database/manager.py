@@ -3,7 +3,7 @@ from asyncpg import Pool
 from typing import Optional, List, Dict, Any
 import logging
 from contextlib import asynccontextmanager
-from config import DatabaseConfig
+from src.config.config import DatabaseConfig
 
 logger = logging.getLogger(__name__)
 
