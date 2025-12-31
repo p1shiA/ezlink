@@ -53,24 +53,37 @@ class DatabaseManager:
             async with conn.transaction():
                 yield conn
 
-    async def execute(self, query: str, *args) -> str:
+    async def execute(self, query: str, *args, conn=None) -> str:
         """Execute query without returning results"""
+        if conn:
+            return await conn.execute(query, *args)
+        
         async with self.pool.acquire() as conn:
             return await conn.execute(query, *args)
         
-    async def fetch_one(self, query: str, *args) -> Optional[Dict[str, Any]]:
+    async def fetch_one(self, query: str, *args, conn=None) -> Optional[Dict[str, Any]]:
         """Fetch single row"""
+        if conn:
+            row = await conn.fetchrow(query, *args)
+            return dict(row) if row else None
+
         async with self.pool.acquire() as conn:
             row = await conn.fetchrow(query, *args)
             return dict(row) if row else None
         
-    async def fetch_all(self, query: str, *args) -> List[Dict[str, Any]]:
+    async def fetch_all(self, query: str, *args, conn=None) -> List[Dict[str, Any]]:
         """Fetch all rows"""
+        if conn:
+            rows = await conn.fetch(query, *args)
+            return [dict(row) for row in rows]
+        
         async with self.pool.acquire() as conn:
             rows = await conn.fetch(query, *args)
             return [dict(row) for row in rows]
         
-    async def fetch_val(self, query: str, *args) -> Any:
+    async def fetch_val(self, query: str, *args, conn=None) -> Any:
         """Fetch single value"""
+        if conn:
+            return await conn.fetchval(query, *args)
         async with self.pool.acquire() as conn:
             return await conn.fetchval(query, *args)
