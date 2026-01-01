@@ -1,11 +1,11 @@
 import asyncpg
 from asyncpg import Pool
 from typing import Optional, List, Dict, Any
-import logging
+from src.config.logging_config import get_logger
 from contextlib import asynccontextmanager
 from src.config.config import DatabaseConfig
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 class DatabaseManager:
     """Main database manager"""
